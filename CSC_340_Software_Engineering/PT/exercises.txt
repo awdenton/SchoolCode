@@ -1,0 +1,4 @@
+ED,sit ups,12,120,b
+ED,crunches,15,150,b
+ED,pull ups,20,650,b
+ED,bench press,10,30,b

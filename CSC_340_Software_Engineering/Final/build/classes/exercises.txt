@@ -1,0 +1,5 @@
+-,0,0,-,no,-,no,-,no,-,no
+push ups,321,15615,-,no,-,no,-,no,-,no
+sit ups,61,1251,-,no,-,no,2,yes,-,no
+jogging,12,321,-,no,-,no,-,no,-,no
+pilates,500,12,-,no,-,no,-,no,-,no

@@ -1,0 +1,17 @@
+﻿Build started 3/1/2016 8:28:15 PM.
+     1>Project "D:\Users\Aaron\Dropbox\CSC 261\assignment 6\windows32\windows32.vcxproj" on node 2 (Build target(s)).
+     1>_MASM:
+         Assembling assignment 6.asm...
+         cmd.exe /C "D:\Users\Aaron\AppData\Local\Temp\tmp56e3bb7ec0e04bc989b1f76b9395246b.cmd"
+         ml.exe /c /nologo /Zi /Fo"Debug\assignment 6.obj" /W3 /errorReport:prompt /Fl /Ta"assignment 6.asm"
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Users\Aaron\Dropbox\CSC 261\assignment 6\Debug\windows32.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Users\Aaron\Dropbox\CSC 261\assignment 6\Debug\windows32.pdb" /MAP /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE:NO /IMPLIB:"D:\Users\Aaron\Dropbox\CSC 261\assignment 6\Debug\windows32.lib" /MACHINE:X86 /SAFESEH:NO Debug\framework.res
+         Debug\framework.obj
+         "Debug\assignment 6.obj"
+         Debug\io.obj
+         windows32.vcxproj -> D:\Users\Aaron\Dropbox\CSC 261\assignment 6\Debug\windows32.exe
+     1>Done Building Project "D:\Users\Aaron\Dropbox\CSC 261\assignment 6\windows32\windows32.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.34

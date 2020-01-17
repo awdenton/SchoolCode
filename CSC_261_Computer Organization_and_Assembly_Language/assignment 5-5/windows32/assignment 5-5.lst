@@ -1,0 +1,257 @@
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    02/27/16 16:59:22
+assignment 5-5.asm					     Page 1 - 1
+
+
+				;This is my own work: Aaron Denton
+				;Read in ten integers from 1-1000 (check to make sure entries are valid)
+				;Display the array
+				;Sort from smallest to largest
+				;Display sorted result
+				;Then display any multiples of three (can use multiple display windows)
+
+				.586
+				.MODEL FLAT
+
+				INCLUDE io.h            ; header file for input/output
+			      C ; IO.H -- header file for I/O macros (listing suppressed)
+			      C .NOLIST      ; turn off listing
+			      C .LIST        ; begin listing
+			      C 
+
+				.STACK 4096
+
+ 00000000			.DATA
+ 00000000  0000000A [		intArray DWORD 10 DUP(?)
+	    00000000
+	   ]
+ 00000028 45 6E 74 65 72	inPrompt BYTE "Enter an integer between 1-1000 inclusive", 0
+	   20 61 6E 20 69
+	   6E 74 65 67 65
+	   72 20 62 65 74
+	   77 65 65 6E 20
+	   31 2D 31 30 30
+	   30 20 69 6E 63
+	   6C 75 73 69 76
+	   65 00
+ 00000052  00000028 [		string BYTE 40 DUP (?)
+	    00
+	   ]
+ 0000007A 54 68 65 20 61	outLbl1 BYTE "The array as entered", 0
+	   72 72 61 79 20
+	   61 73 20 65 6E
+	   74 65 72 65 64
+	   00
+ 0000008F 54 68 65 20 73	outLbl2 BYTE "The sorted array", 0
+	   6F 72 74 65 64
+	   20 61 72 72 61
+	   79 00
+ 000000A0 4D 75 6C 74 69	outLbl3 BYTE "Multiples of three in the array", 0
+	   70 6C 65 73 20
+	   6F 66 20 74 68
+	   72 65 65 20 69
+	   6E 20 74 68 65
+	   20 61 72 72 61
+	   79 00
+ 000000C0 45 52 52 4F 52	errLbl BYTE "ERROR", 0
+	   00
+ 000000C6 50 6C 65 61 73	errMsg BYTE "Please re-enter a valid integer", 0
+	   65 20 72 65 2D
+	   65 6E 74 65 72
+	   20 61 20 76 61
+	   6C 69 64 20 69
+	   6E 74 65 67 65
+	   72 00
+ 000000E6  0000006E [		arrayStr BYTE 110 DUP (?), 0
+	    00
+	   ] 00
+ 00000155 00000000		passChecks DWORD ?
+ 00000159 00000003		multThree DWORD	3
+
+
+
+ 00000000			.CODE
+ 00000000			_MainProc PROC
+
+							;read in the 10 integers
+ 00000000  B9 0000000A				mov ECX, 10						;intialize loop counter to 10
+ 00000005  8D 35 00000000 R			lea ESI, intArray				;get the starting address of the integer array
+ 0000000B			readIn:	input inPrompt, string, 40		;prompt the user for an integer
+						atod string						;convert input to a DWORD
+							
+							;make sure input is valid
+ 00000038  83 F8 01				cmp EAX, 1						;check EAX against lower bound
+ 0000003B  7C 07				jl retry						;if value is less than 1, jump to error message
+ 0000003D  3D 000003E8				cmp EAX, 1000					;check EAX against upper bound
+ 00000042  7E 1B				jle resume						;if value is less than or equal 1000, continue program
+ 00000044			retry:	output errLbl, errMsg			;display error message for invalid values
+ 0000005D  EB AC				jmp readIn						;jump back to input prompt for a new value
+
+							;store value if valid
+ 0000005F  89 06		resume:	mov [ESI], EAX					;place the DWORD into place in the array
+ 00000061  83 C6 04				add ESI, 4						;advance the array address
+ 00000064  E2 A5				loop readIn						;get next value
+
+
+
+							;display the array as entered
+ 00000066  B9 0000000A				mov ECX, 10						;intialize loop counter to 10
+ 0000006B  8D 35 00000000 R			lea ESI, intArray				;get the starting address of the integer array
+ 00000071  8D 3D 000000E6 R			lea EDI, arrayStr				;get the starting address of the outut string
+ 00000077			disp1:	dtoa [EDI],[ESI]				;convert the value in the int array to a string, place in output string
+ 0000008B  83 C6 04				add ESI, 4						;advance the int array address
+ 0000008E  83 C7 0B				add EDI, 11						;advance the output string address
+ 00000091  E2 E4				loop disp1						;repeat
+						output outLbl1, arrayStr		;display result
+
+
+							
+							;BUBBLE SORT
+							;using a Bubble Sort, sort the array from smallest to largest
+ 000000AC  B9 00000009				mov ECX, 9						;initialize loop counter to 9, the number of passes through the array needed to sort it
+ 000000B1  8D 3D 00000000 R			lea EDI, intArray				
+ 000000B7  83 C7 24				add EDI, 36						;set EDI to point to the last address of the array so we can check if a pass through has finished
+							
+							;compare two adjacent array values to find which is larger
+ 000000BA  8D 35 00000000 R	nxtPass:lea ESI, intArray				;get the starting address of the integer array
+ 000000C0  C7 05 00000155 R			mov passChecks, 0				;reset the number of checks for this pass to 0
+	   00000000
+ 000000CA  FF 05 00000155 R	nxtComp:inc passChecks					;increment the number of checks for the current pass
+ 000000D0  8B 06				mov EAX, [ESI]					;move the initial value of the array to EAX for comparison
+ 000000D2  8B 5E 04				mov EBX, [ESI+4]				;move the second value of the array to EBX for comparison
+														;we load both values to the CPU to ease switching them if we have to
+
+ 000000D5  3B C3				cmp EAX, EBX					;compare EAX (the first element) with EBX (the second element)
+ 000000D7  7E 05				jng passEnd						;if EAX is not larger than EBX, jump ahead to check if the current pass has reached the end
+						
+ 000000D9  89 1E				mov [ESI], EBX					;otherwise, switch the values before continuing to see in the pass has finished
+ 000000DB  89 46 04				mov [ESI+4], EAX
+						
+							;check if the current pass has finished
+ 000000DE  83 C6 04		passEnd:add ESI, 4						;move to the next address in the array
+ 000000E1  39 0D 00000155 R			cmp passChecks, ECX				;compare the number of checks in this pass to the current val in ECX for equality
+ 000000E7  75 E1				jne nxtComp						;if they aren't, we havent reached the end of the pass yet and need to compare the next two values
+
+ 000000E9  83 EF 04				sub EDI, 4						;otherwise, decrement EDI, since the last value in the array is now properly sorted
+ 000000EC  E2 CC				loop nxtPass					;do the next pass of the bubble sort
+
+
+
+							;display the sorted array
+ 000000EE  B9 0000000A				mov ECX, 10						;intialize loop counter to 10
+ 000000F3  8D 35 00000000 R			lea ESI, intArray				;get the starting address of the integer array
+ 000000F9  8D 3D 000000E6 R			lea EDI, arrayStr				;get the starting address of the outut string
+ 000000FF			disp2:	dtoa [EDI],[ESI]				;convert the value in the int array to a string, place in output string
+ 00000113  83 C6 04				add ESI, 4						;advance the int array address
+ 00000116  83 C7 0B				add EDI, 11						;advance the output string address
+ 00000119  E2 E4				loop disp2						;repeat
+						output outLbl2, arrayStr		;display result
+
+
+							;look for multiples of three
+ 00000134  B9 0000000A				mov ECX, 10						;initialize loop counter to 10
+ 00000139  8D 35 00000000 R			lea ESI, intArray				;set ESI to point at the beginning of the array
+ 0000013F  8D 3D 000000E6 R			lea EDI, arrayStr				;set EDI to use our same output string
+
+							;prepare for division
+ 00000145  8B 06		threes:	mov EAX, [ESI]					;move the value in ESI to EAX
+ 00000147  BA 00000000				mov EDX, 0						;set EDX to 0
+ 0000014C  F7 35 00000159 R			div multThree					;divide the value in EAX by three
+
+ 00000152  83 FA 00				cmp EDX, 0						;check if EDX is 0, indicating no remainder, or that EAX was divisible by three
+ 00000155  75 17				jne over						;if there is something in EDX, jump ahead to check the next value in array
+
+						dtoa [EDI],[ESI]				;convert the value in the int array to a string, place in output string
+ 0000016B  83 C7 0B				add EDI, 11						;advance the output string address
+
+ 0000016E  83 C6 04		over:	add ESI, 4						;advance the int array address
+ 00000171  E2 D2				loop threes						;check the next value in the array
+						
+ 00000173  C7 07 00000000			mov DWORD PTR [EDI], 0
+						output outLbl3, arrayStr
+
+
+
+
+ 00000192  B8 00000000		        mov     eax, 0  ; exit with return code 0
+ 00000197  C3			        ret
+ 00000198			_MainProc ENDP
+				END                             ; end of source code
+
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    02/27/16 16:59:22
+assignment 5-5.asm					     Symbols 2 - 1
+
+
+
+
+Macros:
+
+                N a m e                 Type
+
+atod . . . . . . . . . . . . . .	Proc
+atow . . . . . . . . . . . . . .	Proc
+dtoa . . . . . . . . . . . . . .	Proc
+input  . . . . . . . . . . . . .	Proc
+output . . . . . . . . . . . . .	Proc
+wtoa . . . . . . . . . . . . . .	Proc
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000015D Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000198 Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+_MainProc  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000198 Public
+  readIn . . . . . . . . . . . .	L Near	 0000000B _TEXT	
+  retry  . . . . . . . . . . . .	L Near	 00000044 _TEXT	
+  resume . . . . . . . . . . . .	L Near	 0000005F _TEXT	
+  disp1  . . . . . . . . . . . .	L Near	 00000077 _TEXT	
+  nxtPass  . . . . . . . . . . .	L Near	 000000BA _TEXT	
+  nxtComp  . . . . . . . . . . .	L Near	 000000CA _TEXT	
+  passEnd  . . . . . . . . . . .	L Near	 000000DE _TEXT	
+  disp2  . . . . . . . . . . . .	L Near	 000000FF _TEXT	
+  threes . . . . . . . . . . . .	L Near	 00000145 _TEXT	
+  over . . . . . . . . . . . . .	L Near	 0000016E _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000000h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+_getInput  . . . . . . . . . . .	L Near	 00000000 FLAT	External
+_showOutput  . . . . . . . . . .	L Near	 00000000 FLAT	External
+arrayStr . . . . . . . . . . . .	Byte	 000000E6 _DATA	
+atodproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+atowproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+dtoaproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+errLbl . . . . . . . . . . . . .	Byte	 000000C0 _DATA	
+errMsg . . . . . . . . . . . . .	Byte	 000000C6 _DATA	
+inPrompt . . . . . . . . . . . .	Byte	 00000028 _DATA	
+intArray . . . . . . . . . . . .	DWord	 00000000 _DATA	
+multThree  . . . . . . . . . . .	DWord	 00000159 _DATA	
+outLbl1  . . . . . . . . . . . .	Byte	 0000007A _DATA	
+outLbl2  . . . . . . . . . . . .	Byte	 0000008F _DATA	
+outLbl3  . . . . . . . . . . . .	Byte	 000000A0 _DATA	
+passChecks . . . . . . . . . . .	DWord	 00000155 _DATA	
+string . . . . . . . . . . . . .	Byte	 00000052 _DATA	
+wtoaproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+
+	   0 Warnings
+	   0 Errors

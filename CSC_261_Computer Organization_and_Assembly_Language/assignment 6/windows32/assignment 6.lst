@@ -1,0 +1,190 @@
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    03/01/16 20:28:15
+assignment 6.asm					     Page 1 - 1
+
+
+				; This is my own work: Aaron Denton
+
+				.586
+				.MODEL FLAT
+
+				INCLUDE io.h            ; header file for input/output
+			      C ; IO.H -- header file for I/O macros (listing suppressed)
+			      C .NOLIST      ; turn off listing
+			      C .LIST        ; begin listing
+			      C 
+
+				.STACK 4096
+
+ 00000000			.DATA
+ 00000000 00000000		posInt DWORD   ?
+ 00000004 45 6E 74 65 72	prompt BYTE "Enter a positive integer", 0
+	   20 61 20 70 6F
+	   73 69 74 69 76
+	   65 20 69 6E 74
+	   65 67 65 72 00
+ 0000001D 45 52 52 4F 52	errLbl BYTE	"ERROR", 0
+	   00
+ 00000023 50 6C 65 61 73	errMsg BYTE "Please enter a valid positive integer", 0
+	   65 20 65 6E 74
+	   65 72 20 61 20
+	   76 61 6C 69 64
+	   20 70 6F 73 69
+	   74 69 76 65 20
+	   69 6E 74 65 67
+	   65 72 00
+ 00000049  00000028 [		string  BYTE    40 DUP (?)
+	    00
+	   ]
+
+ 00000071 52 65 73 75 6C	resultLbl BYTE "Result:", 0
+	   74 3A 00
+ 00000079 54 68 65 20 73	resultMsg BYTE "The sum series of "
+	   75 6D 20 73 65
+	   72 69 65 73 20
+	   6F 66 20
+ 0000008B  0000000B [		intStr BYTE 11 DUP (?)
+	    00
+	   ]
+ 00000096  20 69 73 3A		BYTE " is:"
+ 0000009A  0000000B [		sumStr BYTE 11 DUP (?), 0
+	    00
+	   ] 00
+
+ 000000A6 00000000		sumResult DWORD 0
+
+ 00000000			.CODE
+ 00000000			_MainProc PROC
+ 00000000			retry:  input   prompt, string, 40			; read ASCII characters
+				        atod    string						; convert to integer
+ 0000002D  83 F8 01				cmp		EAX, 1						; check the input against the minimum acceptable value
+ 00000030  7D 1B				jge		valid						; if it is valid, jump ahead and store it
+						output	errLbl, errMsg				; if it isnt, display error message
+ 0000004B  EB B3				jmp		retry						; jump back and get a new value
+ 0000004D  A3 00000000 R	valid:	mov     posInt, EAX					; store value in memory
+
+							;call the sub-routine sumseries
+ 00000052  FF 35 00000000 R			push	posInt						; push the input value onto the stack
+ 00000058  E8 00000056				call	sumseries					; call the sumseries procedure
+ 0000005D  83 C4 04				add		ESP, 4						; de-allocate the space taken by the push
+
+							;prepare the result display
+						dtoa	sumStr, EAX					; convert the result of sumseries to a string
+						dtoa	intStr, posInt				; convert original input to a string
+						output	resultLbl, resultMsg		; display result message
+
+
+ 000000AD  B8 00000000		        mov     eax, 0						; exit with return code 0
+ 000000B2  C3			        ret
+ 000000B3			_MainProc ENDP
+
+
+				; For a given integer i, returns the sum of (1*2)+(2*3)+(3*4)+...+(i*(i+1)) as a DWORD
+				; Takes one DWORD as an input
+ 000000B3			sumseries PROC
+ 000000B3  55					push	EBP							; save the EBP
+ 000000B4  8B EC				mov		EBP, ESP					; establish the stack frame
+ 000000B6  8B 45 08				mov		EAX, [EBP + 8]				; move the input value into EAX
+
+							;check for the base case
+ 000000B9  83 F8 01				cmp		EAX, 1						; check for the base case, where i=1
+ 000000BC  7F 0E				jg		recur						; if the input is greater than 1, jump to the recursive step
+						
+							;the base case
+ 000000BE  83 05 000000A6 R			add		sumResult, 2				; add 2 to the sumResult (the base case of 1*2)
+	   02
+ 000000C5  A1 000000A6 R			mov		EAX, sumResult				; move the sumResult to EAX to return it
+ 000000CA  5D					pop		EBP							; restore the EBP
+ 000000CB  C3					ret									; return to the calling method
+
+							;the recursive step
+ 000000CC  53			recur:	push	EBX							; store the value in EBX
+ 000000CD  8B D8				mov		EBX, EAX					; move input value into EBX
+ 000000CF  43					inc		EBX							; increment EBX (EAX now equals i, EBX equals i+1)
+ 000000D0  0F AF D8				imul	EBX, EAX					; multiply EBX and EAX, storing result in EBX
+ 000000D3  01 1D 000000A6 R			add		sumResult, EBX				; add the value in EBX to the result
+						
+ 000000D9  48					dec		EAX							; decrement EAX (i-1)
+ 000000DA  50					push	EAX							; store EAX as the input for the next recursive call
+ 000000DB  E8 FFFFFFD3				call	sumSeries					; the recursive call
+ 000000E0  83 C4 04				add		ESP, 4						; de-allocate the space used by pushing EAX
+
+ 000000E3  A1 000000A6 R			mov		EAX, sumResult				; place the final sum into EAX to return it
+
+ 000000E8  5B					pop		EBX							; restore the value in EBX
+ 000000E9  5D					pop		EBP							; restore the EBP
+ 000000EA  C3					ret									; return to calling method
+ 000000EB			sumseries ENDP
+
+				END                             ; end of source code
+
+Microsoft (R) Macro Assembler Version 11.00.50727.1	    03/01/16 20:28:15
+assignment 6.asm					     Symbols 2 - 1
+
+
+
+
+Macros:
+
+                N a m e                 Type
+
+atod . . . . . . . . . . . . . .	Proc
+atow . . . . . . . . . . . . . .	Proc
+dtoa . . . . . . . . . . . . . .	Proc
+input  . . . . . . . . . . . . .	Proc
+output . . . . . . . . . . . . .	Proc
+wtoa . . . . . . . . . . . . . .	Proc
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
+_DATA  . . . . . . . . . . . . .	32 Bit	 000000AA Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000EB Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+_MainProc  . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000B3 Public
+  retry  . . . . . . . . . . . .	L Near	 00000000 _TEXT	
+  valid  . . . . . . . . . . . .	L Near	 0000004D _TEXT	
+sumseries  . . . . . . . . . . .	P Near	 000000B3 _TEXT	Length= 00000038 Public
+  recur  . . . . . . . . . . . .	L Near	 000000CC _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000000h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+_getInput  . . . . . . . . . . .	L Near	 00000000 FLAT	External
+_showOutput  . . . . . . . . . .	L Near	 00000000 FLAT	External
+atodproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+atowproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+dtoaproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+errLbl . . . . . . . . . . . . .	Byte	 0000001D _DATA	
+errMsg . . . . . . . . . . . . .	Byte	 00000023 _DATA	
+intStr . . . . . . . . . . . . .	Byte	 0000008B _DATA	
+posInt . . . . . . . . . . . . .	DWord	 00000000 _DATA	
+prompt . . . . . . . . . . . . .	Byte	 00000004 _DATA	
+resultLbl  . . . . . . . . . . .	Byte	 00000071 _DATA	
+resultMsg  . . . . . . . . . . .	Byte	 00000079 _DATA	
+string . . . . . . . . . . . . .	Byte	 00000049 _DATA	
+sumResult  . . . . . . . . . . .	DWord	 000000A6 _DATA	
+sumStr . . . . . . . . . . . . .	Byte	 0000009A _DATA	
+wtoaproc . . . . . . . . . . . .	L Near	 00000000 FLAT	External
+
+	   0 Warnings
+	   0 Errors
